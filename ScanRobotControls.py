@@ -35,8 +35,19 @@ class ScanRobotControls:
     def stop(self):
         if self.proc_record is not None:
             print(f"Stopping rosbag record with pid {self.proc_record.pid}")
-            # os.killpg(os.getpgid(self.proc_record.pid), signal.SIGINT)
-            os.kill(self.proc_record.pid, signal.SIGINT)
+            os.killpg(os.getpgid(self.proc_record.pid), signal.SIGINT)
+
+            # Wait for the process to terminate
+            self.proc_record.wait()
+
+            # Check if the process has terminated
+            if self.proc_record.returncode is not None:
+                print(
+                    f"rosbag record process terminated with return code {self.proc_record.returncode}"
+                )
+            else:
+                print("rosbag record process did not terminate properly.")
+
             time.sleep(5)
 
     def convert(self):
