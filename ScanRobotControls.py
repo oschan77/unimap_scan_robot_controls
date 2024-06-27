@@ -8,7 +8,7 @@ class ScanRobotControls:
     def __init__(self):
         self.rosbag_dir_path = "/home/u/rosbag"
         self.proc_record_pid = None
-        self.password = "pw"
+        self.password = "u"
 
     def get_latest_created_folder(self):
         all_folders = [
