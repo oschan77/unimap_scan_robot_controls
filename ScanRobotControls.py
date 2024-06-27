@@ -16,9 +16,10 @@ class ScanRobotControls:
             for f in glob.glob(os.path.join(self.rosbag_dir_path, "*"))
             if os.path.isdir(f)
         ]
+
         return max(all_folders, key=lambda x: os.path.getctime(x), default=None)
 
-    def run_with_sudo(self, cmd):
+    def run_with_sudo(self, cmd: str):
         proc = subprocess.Popen(
             f"sudo -S {cmd}",
             shell=True,
@@ -30,12 +31,14 @@ class ScanRobotControls:
         proc.stdin.write(self.password.encode())
         proc.stdin.flush()
         stdout, stderr = proc.communicate()
+
         return proc.returncode, stdout, stderr, proc.pid
 
     def record(self):
         cmd_record = "docker exec rosbag bash -c 'ros2 bag record /ouster/points /ouster/imu /ouster/scan /odom'"
         returncode, stdout, stderr, pid = self.run_with_sudo(cmd_record)
         self.proc_record_pid = pid
+
         return returncode, stdout, stderr
 
     def stop(self):
@@ -47,7 +50,9 @@ class ScanRobotControls:
         ros2bag_folder = self.get_latest_created_folder()
         if ros2bag_folder:
             cmd_convert = f"docker exec rosbag bash -c 'rosbags-convert --src {ros2bag_folder} --dst {ros2bag_folder}.bag'"
+
             return self.run_with_sudo(cmd_convert)
+
         return 1, b"", b"Folder not found"
 
     def test(self):
