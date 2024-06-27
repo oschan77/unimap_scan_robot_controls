@@ -19,6 +19,19 @@ class ScanRobotControls:
 
         return max(all_folders, key=lambda x: os.path.getctime(x), default=None)
 
+    def terminate_process_and_children(self, p):
+        ps_command = subprocess.Popen(
+            "ps -o pid --ppid %d --noheaders" % p.pid,
+            shell=True,
+            stdout=subprocess.PIPE,
+        )
+        ps_output = ps_command.stdout.read()
+        retcode = ps_command.wait()
+        assert retcode == 0, "ps command returned %d" % retcode
+        for pid_str in ps_output.split("\n")[:-1]:
+            os.kill(int(pid_str), signal.SIGINT)
+        p.terminate()
+
     def record(self):
         cmd_record = "docker exec rosbag bash -c 'source /opt/ros/humble/setup.bash; ros2 bag record /ouster/points /ouster/imu /ouster/scan /odom'"
         self.proc_record = subprocess.Popen(
@@ -32,23 +45,24 @@ class ScanRobotControls:
 
         print(f"Started rosbag record with pid {self.proc_record.pid}")
 
+    # def stop(self):
+    #     if self.proc_record is not None:
+    #         print(f"Stopping rosbag record with pid {self.proc_record.pid}")
+    #         os.killpg(os.getpgid(self.proc_record.pid), signal.SIGINT)
+
+    #         time.sleep(5)
+
+    #         self.proc_record.wait()
+
+    #         if self.proc_record.returncode is not None:
+    #             print(
+    #                 f"rosbag record process terminated with return code {self.proc_record.returncode}"
+    #             )
+    #         else:
+    #             print("rosbag record process did not terminate properly.")
+
     def stop(self):
-        if self.proc_record is not None:
-            print(f"Stopping rosbag record with pid {self.proc_record.pid}")
-            os.killpg(os.getpgid(self.proc_record.pid), signal.SIGINT)
-
-            # Wait for the process to terminate
-            self.proc_record.wait()
-
-            # Check if the process has terminated
-            if self.proc_record.returncode is not None:
-                print(
-                    f"rosbag record process terminated with return code {self.proc_record.returncode}"
-                )
-            else:
-                print("rosbag record process did not terminate properly.")
-
-            time.sleep(5)
+        self.terminate_process_and_children(self.proc_record)
 
     def convert(self):
         ros2bag_folder = self.get_latest_created_folder()
