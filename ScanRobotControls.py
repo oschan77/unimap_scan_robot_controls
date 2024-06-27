@@ -4,6 +4,8 @@ import signal
 import subprocess
 import time
 
+import psutil
+
 
 class ScanRobotControls:
     def __init__(self):
@@ -19,18 +21,24 @@ class ScanRobotControls:
 
         return max(all_folders, key=lambda x: os.path.getctime(x), default=None)
 
+    # def terminate_process_and_children(self, p):
+    #     ps_command = subprocess.Popen(
+    #         "ps -o pid --ppid %d --noheaders" % p.pid,
+    #         shell=True,
+    #         stdout=subprocess.PIPE,
+    #     )
+    #     ps_output = ps_command.stdout.read()
+    #     retcode = ps_command.wait()
+    #     assert retcode == 0, "ps command returned %d" % retcode
+    #     for pid_str in ps_output.split("\n")[:-1]:
+    #         os.kill(int(pid_str), signal.SIGINT)
+    #     p.terminate()
+
     def terminate_process_and_children(self, p):
-        ps_command = subprocess.Popen(
-            "ps -o pid --ppid %d --noheaders" % p.pid,
-            shell=True,
-            stdout=subprocess.PIPE,
-        )
-        ps_output = ps_command.stdout.read()
-        retcode = ps_command.wait()
-        assert retcode == 0, "ps command returned %d" % retcode
-        for pid_str in ps_output.split("\n")[:-1]:
-            os.kill(int(pid_str), signal.SIGINT)
-        p.terminate()
+        process = psutil.Process(p.pid)
+        for sub_process in process.children(recursive=True):
+            sub_process.send_signal(signal.SIGINT)
+        p.wait()
 
     def record(self):
         cmd_record = "docker exec rosbag bash -c 'source /opt/ros/humble/setup.bash; ros2 bag record /ouster/points /ouster/imu /ouster/scan /odom'"
