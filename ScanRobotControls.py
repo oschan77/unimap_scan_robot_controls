@@ -50,10 +50,8 @@ class ScanRobotControls:
 
     def stop(self):
         if self.proc_record_pid is not None:
-            cmd_stop_record = "docker exec rosbag bash -c 'source /opt/ros/humble/setup.bash ; ros2 lifecycle set /rosbag2_recorder pause'"
-            self.run_with_sudo(cmd_stop_record)
-            time.sleep(5)
             os.killpg(os.getpgid(self.proc_record_pid), signal.SIGINT)
+            time.sleep(10)
             self.proc_record_pid = None
             if self.record_thread is not None:
                 self.record_thread.join()
