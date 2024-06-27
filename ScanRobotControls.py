@@ -3,6 +3,7 @@ import os
 import signal
 import subprocess
 import threading
+import time
 
 
 class ScanRobotControls:
@@ -49,7 +50,10 @@ class ScanRobotControls:
 
     def stop(self):
         if self.proc_record_pid is not None:
-            os.killpg(os.getpgid(self.proc_record_pid), signal.SIGTERM)
+            cmd_stop_record = "docker exec rosbag bash -c 'source /opt/ros/humble/setup.bash ; ros2 lifecycle set /rosbag2_recorder pause'"
+            self.run_with_sudo(cmd_stop_record)
+            time.sleep(5)
+            os.killpg(os.getpgid(self.proc_record_pid), signal.SIGINT)
             self.proc_record_pid = None
             if self.record_thread is not None:
                 self.record_thread.join()
