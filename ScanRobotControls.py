@@ -117,10 +117,19 @@ class ScanRobotControls:
 
     def stop(self):
         if self.proc_record is not None:
-            # Send SIGINT to the process group
-            os.killpg(os.getpgid(self.proc_record.pid), signal.SIGINT)
-            self.proc_record.wait()  # Wait for the process to handle SIGINT and exit
-            self.proc_record = None
+            try:
+                # Send SIGINT to the process group
+                os.killpg(os.getpgid(self.proc_record.pid), signal.SIGINT)
+                time.sleep(
+                    10
+                )  # Give more time for the process to handle SIGINT and exit
+            except Exception as e:
+                print(f"Error sending SIGINT: {e}")
+            finally:
+                # Ensure the process is terminated
+                self.proc_record.terminate()
+                self.proc_record.wait()  # Wait for the process to handle SIGINT and exit
+                self.proc_record = None
 
     def convert(self):
         ros2bag_folder = self.get_latest_created_folder()
