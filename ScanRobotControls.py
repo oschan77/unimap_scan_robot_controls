@@ -31,7 +31,7 @@ class ScanRobotControls:
         )
 
     def get_pid(self):
-        cmd_pid = "docker exec rosbag ps aux | grep ros2 bag record"
+        cmd_pid = "docker exec rosbag ps aux | 'grep ros2 bag record'"
         proc_pid = subprocess.Popen(
             cmd_pid,
             shell=True,
