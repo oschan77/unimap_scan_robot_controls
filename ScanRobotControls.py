@@ -11,12 +11,18 @@ class ScanRobotControls:
 
     def get_latest_created_folder(self):
         all_folders = [
-            os.path.basename(f)
+            f
             for f in glob.glob(os.path.join(self.rosbag_dir_path, "*"))
             if os.path.isdir(f)
         ]
 
-        return max(all_folders, key=lambda x: os.path.getctime(x), default=None)
+        latest_folder = max(
+            all_folders, key=lambda x: os.path.getctime(x), default=None
+        )
+
+        if latest_folder is not None:
+            return os.path.basename(latest_folder)
+        return None
 
     def get_pid(self):
         cmd_pid = "docker exec rosbag bash -c \"ps aux | grep '[r]os2 bag record'\""
