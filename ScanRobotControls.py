@@ -75,6 +75,7 @@ class ScanRobotControls:
             )
             proc_stop.communicate()
             print("ros2 bag record stopped")
+            self.chown()
 
     def convert(self):
         ros2bag_folder = self.get_latest_created_folder()
@@ -90,6 +91,7 @@ class ScanRobotControls:
             )
             proc_convert.communicate()
             print(f"ros2 bag convert completed for {ros2bag_folder}")
+            self.chown()
 
         else:
             print("No ros2 bag is found")
