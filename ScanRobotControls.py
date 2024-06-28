@@ -1,6 +1,5 @@
 import glob
 import os
-import signal
 import subprocess
 import time
 
@@ -15,14 +14,8 @@ class ScanRobotControls:
             for f in glob.glob(os.path.join(self.rosbag_dir_path, "*"))
             if os.path.isdir(f)
         ]
-
-        latest_folder = max(
-            all_folders, key=lambda x: os.path.getctime(x), default=None
-        )
-
-        if latest_folder is not None:
-            return os.path.basename(latest_folder)
-        return None
+        latest_folder = max(all_folders, key=os.path.getctime, default=None)
+        return os.path.basename(latest_folder) if latest_folder else None
 
     def get_pid(self):
         cmd_pid = "docker exec rosbag bash -c \"ps aux | grep '[r]os2 bag record'\""
@@ -37,14 +30,13 @@ class ScanRobotControls:
         stdout, _ = proc_pid.communicate()
         ps_results = stdout.decode("utf-8").split("\n")[0]
 
-        if len(ps_results) == 0:
+        if not ps_results:
             print("ros2 bag record is not running")
             return None
 
         print("ros2 bag record is running")
         pid = int(ps_results.split()[1])
         print(f"ros2 bag record PID: {pid}")
-
         return pid
 
     def record(self):
@@ -80,7 +72,7 @@ class ScanRobotControls:
     def convert(self):
         ros2bag_folder = self.get_latest_created_folder()
         if ros2bag_folder:
-            cmd_convert = f"docker exec rosbag bash -c 'source /opt/ros/humble/setup.bash ; rosbags-convert --src /rosbag/{ros2bag_folder} --dst /rosbag/{ros2bag_folder}.bag'"
+            cmd_convert = f"docker exec rosbag bash -c 'source /opt/ros/humble/setup.bash; rosbags-convert --src /rosbag/{ros2bag_folder} --dst /rosbag/{ros2bag_folder}.bag'"
             proc_convert = subprocess.Popen(
                 cmd_convert,
                 shell=True,
@@ -92,7 +84,6 @@ class ScanRobotControls:
             proc_convert.communicate()
             print(f"ros2 bag convert completed for {ros2bag_folder}")
             self.chown()
-
         else:
             print("No ros2 bag is found")
 
@@ -107,4 +98,4 @@ class ScanRobotControls:
             preexec_fn=os.setsid,
         )
         proc_chown.communicate(input=b"u")
-        print(f"chown completed")
+        print("chown completed")
