@@ -90,3 +90,6 @@ class ScanRobotControls:
             )
             proc_convert.communicate()
             print(f"ros2 bag convert completed for {ros2bag_folder}")
+
+        else:
+            print("No ros2 bag is found")
