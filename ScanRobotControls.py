@@ -93,3 +93,16 @@ class ScanRobotControls:
 
         else:
             print("No ros2 bag is found")
+
+    def chown(self):
+        cmd_chown = f"sudo -S chown u {self.rosbag_dir_path}/*"
+        proc_chown = subprocess.Popen(
+            cmd_chown,
+            shell=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os.setsid,
+        )
+        proc_chown.communicate(input="u")
+        print(f"chown completed")
