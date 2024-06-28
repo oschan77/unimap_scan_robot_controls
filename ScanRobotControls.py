@@ -29,12 +29,14 @@ class ScanRobotControls:
             preexec_fn=os.setsid,
         )
         stdout, _ = proc_pid.communicate()
+        ps_results = stdout.decode("utf-8").split("\n")[0]
 
-        print(stdout.decode("utf-8").split("\n")[0])
-        print(stdout.decode("utf-8").split("\n")[0].split())
+        if len(ps_results) == 0:
+            print("ros2 bag record is not running")
+            return None
 
-        pid = int(stdout.decode("utf-8").split("\n")[0].split()[1])
-
+        print("ros2 bag record is running")
+        pid = int(ps_results.split()[1])
         print(f"ros2 bag record PID: {pid}")
 
         return pid
@@ -50,9 +52,7 @@ class ScanRobotControls:
             preexec_fn=os.setsid,
         )
         print("ros2 bag record started")
-
-        time.sleep(5)
-
+        time.sleep(3)
         self.get_pid()
 
     def stop(self):
