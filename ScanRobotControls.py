@@ -73,7 +73,7 @@ class ScanRobotControls:
     def convert(self):
         ros2bag_folder = self.get_latest_created_folder()
         if ros2bag_folder:
-            cmd_convert = f"docker exec rosbag bash -c 'source /opt/ros/humble/setup.bash; cd /rosbag ; rosbags-convert --src {ros2bag_folder} --dst {ros2bag_folder}.bag'"
+            cmd_convert = f"docker exec rosbag bash -c 'source /opt/ros/humble/setup.bash ; rosbags-convert --src /rosbag/{ros2bag_folder} --dst /rosbag/{ros2bag_folder}.bag'"
             proc_convert = subprocess.Popen(
                 cmd_convert,
                 shell=True,
