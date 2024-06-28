@@ -30,12 +30,8 @@ class ScanRobotControls:
             preexec_fn=os.setsid,
         )
 
-        stdout, stderr = proc_record.communicate()
-
-        return stdout, stderr
-
     def get_pid(self):
-        cmd_pid = "docker exec rosbag ps aux | grep ros2"
+        cmd_pid = "docker exec rosbag ps aux | grep ros2 bag record"
         proc_pid = subprocess.Popen(
             cmd_pid,
             shell=True,
@@ -47,7 +43,7 @@ class ScanRobotControls:
 
         stdout, _ = proc_pid.communicate()
 
-        pid = stdout.decode("utf-8").split("\n")[0].split()[1]
+        pid = int(stdout.decode("utf-8").split("\n")[0].split()[1])
 
         print(f"ros2 bag record PID: {pid}")
 
@@ -56,7 +52,17 @@ class ScanRobotControls:
     def stop(self):
         print("Stops rosbag record")
         pid = self.get_pid()
-        os.kill(pid, signal.SIGINT)
+
+        cmd_stop = f"docker exec rosbag bash -c 'kill -2 {pid}'"
+
+        proc_stop = subprocess.Popen(
+            cmd_stop,
+            shell=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os.setsid,
+        )
 
     def convert(self):
         print("Starts rosbag convert")
