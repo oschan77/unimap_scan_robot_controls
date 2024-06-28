@@ -18,18 +18,6 @@ class ScanRobotControls:
 
         return max(all_folders, key=lambda x: os.path.getctime(x), default=None)
 
-    def record(self):
-        print("Starts rosbag record")
-        cmd_record = "docker exec rosbag bash -c 'source /opt/ros/humble/setup.bash; ros2 bag record /ouster/points /ouster/imu /ouster/scan /odom'"
-        proc_record = subprocess.Popen(
-            cmd_record,
-            shell=True,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            preexec_fn=os.setsid,
-        )
-
     def get_pid(self):
         cmd_pid = "docker exec rosbag ps aux | 'grep ros2 bag record'"
         proc_pid = subprocess.Popen(
@@ -40,21 +28,28 @@ class ScanRobotControls:
             stderr=subprocess.PIPE,
             preexec_fn=os.setsid,
         )
-
         stdout, _ = proc_pid.communicate()
-
         pid = int(stdout.decode("utf-8").split("\n")[0].split()[1])
-
         print(f"ros2 bag record PID: {pid}")
 
         return pid
 
+    def record(self):
+        cmd_record = "docker exec rosbag bash -c 'source /opt/ros/humble/setup.bash; ros2 bag record /ouster/points /ouster/imu /ouster/scan /odom'"
+        proc_record = subprocess.Popen(
+            cmd_record,
+            shell=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os.setsid,
+        )
+        print("ros2 bag record started")
+        self.get_pid()
+
     def stop(self):
-        print("Stops rosbag record")
         pid = self.get_pid()
-
         cmd_stop = f"docker exec rosbag bash -c 'kill -2 {pid}'"
-
         proc_stop = subprocess.Popen(
             cmd_stop,
             shell=True,
@@ -63,13 +58,13 @@ class ScanRobotControls:
             stderr=subprocess.PIPE,
             preexec_fn=os.setsid,
         )
+        proc_stop.communicate()
+        print("ros2 bag record stopped")
 
     def convert(self):
-        print("Starts rosbag convert")
         ros2bag_folder = self.get_latest_created_folder()
         if ros2bag_folder:
             cmd_convert = f"docker exec rosbag bash -c 'source /opt/ros/humble/setup.bash; rosbags-convert --src {ros2bag_folder} --dst {ros2bag_folder}.bag'"
-
             proc_convert = subprocess.Popen(
                 cmd_convert,
                 shell=True,
@@ -78,7 +73,5 @@ class ScanRobotControls:
                 stderr=subprocess.PIPE,
                 preexec_fn=os.setsid,
             )
-
-            stdout, stderr = proc_convert.communicate()
-
-            return stdout, stderr
+            proc_convert.communicate()
+            print(f"ros2 bag convert completed for {ros2bag_folder}")
