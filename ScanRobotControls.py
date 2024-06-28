@@ -57,17 +57,18 @@ class ScanRobotControls:
 
     def stop(self):
         pid = self.get_pid()
-        cmd_stop = f"docker exec rosbag bash -c 'kill -2 {pid}'"
-        proc_stop = subprocess.Popen(
-            cmd_stop,
-            shell=True,
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            preexec_fn=os.setsid,
-        )
-        proc_stop.communicate()
-        print("ros2 bag record stopped")
+        if pid:
+            cmd_stop = f"docker exec rosbag bash -c 'kill -2 {pid}'"
+            proc_stop = subprocess.Popen(
+                cmd_stop,
+                shell=True,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                preexec_fn=os.setsid,
+            )
+            proc_stop.communicate()
+            print("ros2 bag record stopped")
 
     def convert(self):
         ros2bag_folder = self.get_latest_created_folder()
