@@ -19,7 +19,6 @@ class ScanRobotControls:
         return max(all_folders, key=lambda x: os.path.getctime(x), default=None)
 
     def get_pid(self):
-        # cmd_pid = "docker exec rosbag bash -c 'ps aux | grep ros2'"
         cmd_pid = "docker exec rosbag bash -c \"ps aux | grep '[r]os2 bag record'\""
         proc_pid = subprocess.Popen(
             cmd_pid,
@@ -30,8 +29,12 @@ class ScanRobotControls:
             preexec_fn=os.setsid,
         )
         stdout, _ = proc_pid.communicate()
-        pid = int(stdout.decode("utf-8").split("\n")[0].split()[1])
+
+        print(stdout.decode("utf-8").split("\n")[0])
         print(stdout.decode("utf-8").split("\n")[0].split())
+
+        pid = int(stdout.decode("utf-8").split("\n")[0].split()[1])
+
         print(f"ros2 bag record PID: {pid}")
 
         return pid
