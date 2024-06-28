@@ -104,5 +104,5 @@ class ScanRobotControls:
             stderr=subprocess.PIPE,
             preexec_fn=os.setsid,
         )
-        proc_chown.communicate(input="u")
+        proc_chown.communicate(input=b"u")
         print(f"chown completed")
